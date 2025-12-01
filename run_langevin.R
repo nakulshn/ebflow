@@ -1,4 +1,3 @@
-options(python_cmd = "C:/Users/Nakul/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0/python.exe")
 source("../discrete_langevin.R")
 library(argparse)
 library(pracma)
@@ -18,7 +17,7 @@ parser$add_argument("--predict", action = "store_true")
 args = parser$parse_args()
 
 respath = args$respath
-datapath = "C:/Users/Nakul/Downloads/EBflow/simulation_code/data/"
+datapath = "/home/ubuntu/ebflow/data/"
 
 ###LOAD data
 X_file_name = sprintf("X_%s_nbyp%.1f.rds",args$D,args$dimr)
