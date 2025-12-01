@@ -1,0 +1,63 @@
+#######################################################################
+Main EBflow method is implemented in EBflow.R.
+
+Example analysis in R with inputs:
+      X = n x p design
+      y = response, length n
+      sigma = noise standard deviation for y
+      Theta = grid of prior support points, length K
+
+
+source("EBflow.R")
+
+# Run 1000 burn-in iterations of Langevin dynamics with fixed uniform prior
+max.iter = 1000
+burn = gradient.flow.EB(X,y,sigma,Theta,lambda=0,eta.w=0,eta.phi=1.0,max.iter=max.iter)
+phi.init = burn$hist[[max.iter+1]]$phi
+
+# Run 10000 iterations of EBflow (initializing phi with the above burn-in) to estimate prior density
+max.iter = 10000
+out = gradient.flow.EB(X,y,sigma,Theta,phi.init=phi.init,max.iter=max.iter)
+w.est = out$w
+
+# Compute posterior mean with 50000 additional Langevin iterations, fixing the estimated prior
+phi.init = out$hist[[max.iter+1]]$phi
+eta.phi=out$eta.phi[max.iter+1]
+max.iter = 50000
+save.iter = 50
+out2 = gradient.flow.EB(X,y,sigma,Theta,lambda=0,eta.w=0,w.init=w.est,phi.init=phi.init,eta.phi=eta.phi,save.iter=save.iter,max.iter=max.iter)
+phi = sapply(seq(1,max.iter+1,save.iter), function(it) out2$hist[[it]]$phi)
+theta.mean = posterior.mean(w,phi,Theta,out2$tau)
+
+
+The above ouputs:
+       w.est = estimated prior weights, length K (corresponding to Theta)
+       theta.mean = estimated posterior mean of regression coefficients, length p
+
+See documentations of gradient.flow.EB and posterior.mean functions in EBflow.R
+for additional parameter settings and further details.
+
+########################################################################
+The other LangevinMCEM, GibbsMCEM, and CAVI methods of the manuscript are
+implemented in alternative.R and discrete_langevin.R.
+
+To reproduce the manuscript figures and tables:
+
+For generating data:
+Rscript gen_data.R
+
+For Figure 1:
+cd Figure1
+bash joblist.sh
+Rscript plot_TV.R
+
+For Figure 2 and Tables 1-5:
+cd Figure2
+bash joblist.sh
+Rscript plot_w.R
+Rscript tabulate.R
+bash joblist_unsmoothed.sh
+Rscript tabulate_unsmoothed.R
+
+(We recommend running joblist.sh and joblist_unsmoothed.sh instead in a parallel computing environment.)
+

@@ -1,0 +1,96 @@
+Rscript ../run_EBflow.R --P gaussian --noiser 0.5 --lambda 0.000 --D identity --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P gaussian --noiser 0.5 --lambda 0.000 --D identity --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --precondition --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P gaussian --noiser 0.5 --lambda 0.000 --D identity --dimr 1.0 --eta.phi 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P gaussian --noiser 0.5 --lambda 0.000 --D identity --dimr 1.0 --eta.phi 0.1 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_Gibbs.R --P gaussian --noiser 0.5 --lambda 0.000 --D identity --dimr 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P skew --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P skew --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --precondition --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P skew --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --eta.phi 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P skew --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --eta.phi 0.1 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_Gibbs.R --P skew --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P cauchy --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P cauchy --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --precondition --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P cauchy --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --eta.phi 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P cauchy --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --eta.phi 0.1 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_Gibbs.R --P cauchy --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P bimodal --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P bimodal --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --precondition --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P bimodal --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --eta.phi 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P bimodal --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --eta.phi 0.1 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_Gibbs.R --P bimodal --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_VI.R --P gaussian --noiser 0.5 --lambda 0.000 --D identity --dimr 1.0 --respath ../Figure2/results/ --predict
+Rscript ../run_VI.R --P skew --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --respath ../Figure2/results/ --predict
+Rscript ../run_VI.R --P cauchy --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --respath ../Figure2/results/ --predict
+Rscript ../run_VI.R --P bimodal --noiser 0.8 --lambda 0.000 --D identity --dimr 1.0 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P gaussian --noiser 0.5 --lambda 0.000 --D iid --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P gaussian --noiser 0.5 --lambda 0.000 --D iid --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --precondition --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P gaussian --noiser 0.5 --lambda 0.000 --D iid --dimr 1.0 --eta.phi 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P gaussian --noiser 0.5 --lambda 0.000 --D iid --dimr 1.0 --eta.phi 0.1 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_Gibbs.R --P gaussian --noiser 0.5 --lambda 0.000 --D iid --dimr 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P skew --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P skew --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --precondition --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P skew --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --eta.phi 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P skew --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --eta.phi 0.1 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_Gibbs.R --P skew --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P cauchy --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P cauchy --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --precondition --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P cauchy --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --eta.phi 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P cauchy --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --eta.phi 0.1 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_Gibbs.R --P cauchy --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P bimodal --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P bimodal --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --precondition --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P bimodal --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --eta.phi 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P bimodal --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --eta.phi 0.1 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_Gibbs.R --P bimodal --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_VI.R --P gaussian --noiser 0.5 --lambda 0.000 --D iid --dimr 1.0 --respath ../Figure2/results/ --predict
+Rscript ../run_VI.R --P skew --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --respath ../Figure2/results/ --predict
+Rscript ../run_VI.R --P cauchy --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --respath ../Figure2/results/ --predict
+Rscript ../run_VI.R --P bimodal --noiser 0.8 --lambda 0.000 --D iid --dimr 1.0 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P gaussian --noiser 0.5 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P gaussian --noiser 0.5 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --precondition --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P gaussian --noiser 0.5 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --eta.phi 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P gaussian --noiser 0.5 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --eta.phi 0.1 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_Gibbs.R --P gaussian --noiser 0.5 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P skew --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P skew --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --precondition --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P skew --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --eta.phi 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P skew --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --eta.phi 0.1 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_Gibbs.R --P skew --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P cauchy --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P cauchy --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --precondition --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P cauchy --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --eta.phi 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P cauchy --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --eta.phi 0.1 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_Gibbs.R --P cauchy --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P bimodal --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P bimodal --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --precondition --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P bimodal --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --eta.phi 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P bimodal --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --eta.phi 0.1 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_Gibbs.R --P bimodal --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_VI.R --P gaussian --noiser 0.5 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --respath ../Figure2/results/ --predict
+Rscript ../run_VI.R --P skew --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --respath ../Figure2/results/ --predict
+Rscript ../run_VI.R --P cauchy --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --respath ../Figure2/results/ --predict
+Rscript ../run_VI.R --P bimodal --noiser 0.8 --lambda 0.000 --D block02corr0.9 --dimr 1.0 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P gaussian --noiser 0.5 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P gaussian --noiser 0.5 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --precondition --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P gaussian --noiser 0.5 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --eta.phi 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P gaussian --noiser 0.5 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --eta.phi 0.1 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_Gibbs.R --P gaussian --noiser 0.5 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P skew --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P skew --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --precondition --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P skew --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --eta.phi 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P skew --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --eta.phi 0.1 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_Gibbs.R --P skew --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P cauchy --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P cauchy --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --precondition --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P cauchy --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --eta.phi 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P cauchy --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --eta.phi 0.1 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_Gibbs.R --P cauchy --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P bimodal --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_EBflow.R --P bimodal --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --eta.phi decay --eta.w decay --seed 1 --precondition --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P bimodal --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --eta.phi 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P bimodal --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --eta.phi 0.1 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_Gibbs.R --P bimodal --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --T 100 --seed 1 --respath ../Figure2/results/ --predict
+Rscript ../run_VI.R --P gaussian --noiser 0.5 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --respath ../Figure2/results/ --predict
+Rscript ../run_VI.R --P skew --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --respath ../Figure2/results/ --predict
+Rscript ../run_VI.R --P cauchy --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --respath ../Figure2/results/ --predict
+Rscript ../run_VI.R --P bimodal --noiser 0.8 --lambda 0.000 --D block10corr0.5 --dimr 1.0 --respath ../Figure2/results/ --predict
