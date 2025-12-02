@@ -16,6 +16,7 @@ plot.w = function(fname,prefix,Theta,w.true,col,title,seeded=TRUE) {
 
 for (prior in c("gaussian","skew","cauchy","bimodal")) {
   print(prior)
+  prior = "bimodal"
   if (prior == "gaussian") { lambda = 0.003; noiser = 0.5 }
   else { lambda = 0.001; noiser = 0.8 }
   dat = readRDS(sprintf("../data/y_%s_block02corr0.9_nbyp1.0_invSNR%.1f.rds",prior,noiser))

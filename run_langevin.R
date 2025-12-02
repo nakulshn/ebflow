@@ -32,7 +32,7 @@ theta = dat$theta.true
 y = dat$y
 
 burn.iter = 200
-max.iter = 500
+max.iter = 10000
 save.iter = 100
 
 res_file_name = sprintf("Langevin_%s_%s_nbyp%.1f_invSNR%.1f_lambda%.3f_etaphi%s_T%d_seed%d.rds",args$P,args$D,args$dimr,args$noiser,args$lambda,args$eta.phi,args$T,args$seed)
