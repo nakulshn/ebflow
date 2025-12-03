@@ -4,7 +4,7 @@ compute.loglik = function(w,y,Theta,sigma) {
   return(mean(colSums(w*mat)))
 }
 
-methods = c("EBflow", "EBflow.preconditioned", "Langevin.eta1.0", "Langevin.eta0.1", "Gibbs", "CAVI")
+methods = c("EBflow", "EBflow.preconditioned", "Langevin.eta1.0", "Langevin.eta0.1", "Gibbs", "CAVI", "PolyaTree")
 
 print.table = function(tab,design) {
   cat("\\hline\n")
@@ -13,17 +13,19 @@ print.table = function(tab,design) {
   cat(sprintf("\\multirow{6}{*}{%s} & \\multirow{6}{*}{%.1f} & %s & %.3f & %.4f & %d & %.3f\\\\\n",
       		design,dimr,"EBflow",tab[["EBflow","TV"]],tab[["EBflow","TV.sd"]],
       		tab[["EBflow","Time (iters)"]],tab[["EBflow",tag]]))
-  for (method in c("EBflow.preconditioned", "Langevin.eta1.0", "Langevin.eta0.1", "Gibbs", "CAVI")) {
+  for (method in c("EBflow.preconditioned", "Langevin.eta1.0", "Langevin.eta0.1", "Gibbs", "CAVI", "PolyaTree")) {
     cat(sprintf("&& %s & %.3f & %.4f & %d & %.3f\\\\\n",
       		  method,tab[[method,"TV"]],tab[[method,"TV.sd"]],
       		  tab[[method,"Time (iters)"]],tab[[method,tag]]))
   }
 }
 
-for (prior in c("gaussian","skew","cauchy","bimodal")) {
+# for (prior in c("gaussian","skew","cauchy","bimodal")) {
+for (prior in c("bimodal")) {
   outf = sprintf("tables/%s.tab",prior)
   sink(outf)
-  for (design in c("identity","iid","block02corr0.9","block10corr0.5")) {
+  # for (design in c("identity","iid","block02corr0.9","block10corr0.5")) {
+  for (design in c("block02corr0.9")) {
     for (dimr in c(2.0,1.0,0.5)) {
       if (design == "identity" && dimr != 1.0) { next }
       if (design == "identity") { cat("Design & $n/p$ & Method & TV & TV.sd & Time (iters) & Log-likelihood \\\\\n") }
@@ -35,7 +37,8 @@ for (prior in c("gaussian","skew","cauchy","bimodal")) {
                    sprintf("Langevin_%s_%s_nbyp%.1f_invSNR%.1f_lambda%.3f_etaphi%.1f_T%d",prior,design,dimr,noiser,lambda,1.0,100),
                    sprintf("Langevin_%s_%s_nbyp%.1f_invSNR%.1f_lambda%.3f_etaphi%.1f_T%d",prior,design,dimr,noiser,lambda,0.1,100),
                    sprintf("Gibbs_%s_%s_nbyp%.1f_invSNR%.1f_lambda%.3f_T%d",prior,design,dimr,noiser,lambda,100),
-          	   sprintf("VI_%s_%s_nbyp%.1f_invSNR%.1f_lambda%.3f",prior,design,dimr,noiser,lambda))
+          	   sprintf("VI_%s_%s_nbyp%.1f_invSNR%.1f_lambda%.3f",prior,design,dimr,noiser,lambda),
+          	   sprintf("PolyaTree_%s_%s_nbyp%.1f_invSNR%.1f",prior,design,dimr,noiser))
       dat = readRDS(sprintf("../data/y_%s_%s_nbyp%.1f_invSNR%.1f.rds",prior,design,dimr,noiser))
       Theta = dat$w.grid
       w.true = dat$w.true
@@ -56,7 +59,11 @@ for (prior in c("gaussian","skew","cauchy","bimodal")) {
           colnames(stats) = colnames(tab)
           for (seed in 1:10) {
             out = readRDS(sprintf("results/%s_seed%d.rds",fnames[i],seed))
-            max.iter = 10000
+            if (method == "PolyaTree") {
+              max.iter = 20000
+            } else {
+              max.iter = 10000
+            }
             stats[[seed,"TV"]] = sum(abs(out$w-w.true)/2)
             TV.hist = sapply(seq(1,max.iter+1,100), function(it) sum(abs(out$hist[[it]]$w-w.true)/2))
             if (min(TV.hist) < 0.2) { iter = (min(which(TV.hist < 0.2))-1)*100 }
@@ -88,7 +95,7 @@ for (prior in c("gaussian","skew","cauchy","bimodal")) {
         if (method != "VI") { stats.sum[["TV.sd"]] = sd(stats[["TV"]]) }
         else { stats.sum[["TV.sd"]] = NA }
         stats.sum[["Time (iters)"]] = median(stats[["Time (iters)"]])
-        if (stats.sum[["Time (iters)"]] == 10000 || (stats.sum[["Time (iters)"]] == 1000 && method == "CAVI")) { stats.sum[["Time (iters)"]] = NA }
+        if ((stats.sum[["Time (iters)"]] == 10000 && method != "PolyaTree") || (stats.sum[["Time (iters)"]] == 20000 && method == "PolyaTree") || (stats.sum[["Time (iters)"]] == 1000 && method == "CAVI")) { stats.sum[["Time (iters)"]] = NA }
         #stats.sum[["Time (seconds)"]] = median(stats[["Time (seconds)"]])
         if (design == "identity") { stats.sum[["Log-likelihood"]] = mean(stats[["Log-likelihood"]]) }
         else { stats.sum[["Prediction MSE"]] = mean(stats[["Prediction MSE"]]) }
