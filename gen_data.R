@@ -58,7 +58,7 @@ designs = list(list(dname="identity",blocksize="identity",corr=NA),
         list(dname="block10corr0.5",blocksize=10,corr=0.5))
 dim.ratios = c(0.5,1,2)
 noise.ratios = c(0.8,0.5)
-K = 61
+K = 65
 p = 1000
 
 for (design in designs) {
