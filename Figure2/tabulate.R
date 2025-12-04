@@ -26,7 +26,8 @@ for (prior in c("bimodal")) {
   sink(outf)
   # for (design in c("identity","iid","block02corr0.9","block10corr0.5")) {
   for (design in c("block02corr0.9")) {
-    for (dimr in c(2.0,1.0,0.5)) {
+    # for (dimr in c(2.0,1.0,0.5)) {
+    for (dimr in c(1.0)) {
       if (design == "identity" && dimr != 1.0) { next }
       if (design == "identity") { cat("Design & $n/p$ & Method & TV & TV.sd & Time (iters) & Log-likelihood \\\\\n") }
       else if (design == "iid" && dimr == 2.0) { cat("\\hline\nDesign & $n/p$ & Method & TV & TV.sd & Time (iters) & Prediction MSE \\\\\n") }
@@ -58,7 +59,11 @@ for (prior in c("bimodal")) {
           stats = data.frame(matrix(ncol=5,nrow=10))
           colnames(stats) = colnames(tab)
           for (seed in 1:10) {
-            out = readRDS(sprintf("results/%s_seed%d.rds",fnames[i],seed))
+            if (method != "PolyaTree") {
+              out = readRDS(sprintf("results/%s_seed%d.rds",fnames[i],seed))
+            } else {
+              out = readRDS(sprintf("results_VIPT/%s_seed%d.rds",fnames[i],seed))
+            }
             max.iter = 10000
             stats[[seed,"TV"]] = sum(abs(out$w-w.true)/2)
 
