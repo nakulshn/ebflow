@@ -238,115 +238,136 @@ rtruncnorm <- function(n = 1, mean = 0, sd = 1, lower = -Inf, upper = Inf) {
 #' @param K Number of grid points (should equal 2^L + 1)
 #' @param L Number of Polya tree levels
 #' @param max.iter Maximum number of MCMC iterations
-#' @param save.iter Save every save.iter iterations
+#' @param predict Whether or not to have an extra prediction phase for beta
+#' @param extra.iter Number of extra iterations for prediction phase
 #' @param verbose Print progress
 #' @param w.true True density for diagnostics (optional)
 #' @param theta.true True betas for MSE diagnostics (optional)
 #' @param print.iter Print every print.iter iterations
 polya_tree_skeleton <- function(X, y, sigma, grid, K = 65, L = 6,
-                                max.iter = 10000, save.iter = 100, 
-                                verbose = TRUE, w.true = NULL, theta.true = NULL, 
+                                max.iter = 10000,
+                                predict = FALSE,
+                                extra.iter = 50000,
+                                verbose = TRUE, w.true = NULL, theta.true = NULL,
                                 print.iter = 100) {
-  
+
   # Dimensions
   n <- nrow(X)
   p <- ncol(X)
   burn_in <- 300
-  
+
+  # Total iterations (add extra if predicting)
+  total.iter <- if (predict) max.iter + extra.iter else max.iter
+
   # Verify K = 2^L + 1
   expected_K <- 2^L + 1
   if (K != expected_K) {
     warning(sprintf("K=%d but 2^L + 1 = %d. Using K=%d", K, expected_K, expected_K))
     K <- expected_K
   }
-  
-  # Initialize with ridge estimate
+
+  # Initialize with ridge estimate (commented out in your file)
   XtX <- crossprod(X)
   Xty <- crossprod(X, y)
   # beta <- as.numeric(solve(XtX, Xty))
   # set initial beta to vector of 0s
   beta <- rep(0, p)
-  
+
   # Polya tree endpoints
   if (length(grid) != K) {
     stop(sprintf("grid must have length K=%d", K))
   }
   endpoints <- grid
   num_intervals <- 2^L  # K - 1 intervals
-  
+
   # Pre-compute hessians for Gaussian likelihood: -d²logL/dβ²ᵢ = ||X[:,i]||² / σ²
   sigma_sq <- sigma^2
   hessians <- -colSums(X^2) / sigma_sq
-  
+
   # Current state
   Xbeta <- as.numeric(X %*% beta)
   residuals <- y - Xbeta
-  
+
   # Track which interval each beta[i] belongs to
   r_indices <- sapply(beta, find_interval_index, endpoints = endpoints)
-  
+
   # Adaptive MH parameters
   K_adapt <- 10  # Start with larger proposal width
   batch_size <- 50  # Smaller initial batch for faster adaptation
   acceptance_batch <- numeric(0)
-  
+
   # Storage for MCMC samples
-  n_save <- floor(max.iter / save.iter)
-  w_samples <- matrix(0, nrow = n_save, ncol = K)
-  beta_samples <- matrix(0, nrow = n_save, ncol = p)
-  
+  w_samples_train <- matrix(0, nrow = total.iter, ncol = K)
+  beta_samples_train <- matrix(0, nrow = total.iter, ncol = p)
+
+  # For averaging in pi_L space over training phase only
+  piL_samples_train <- matrix(0, nrow = max.iter, ncol = num_intervals)
+
   # Initialize phi for first iteration: start with a flat tree (like Python)
   phi <- vector("list", L)
   for (l in 1:L) {
     n_parent_intervals <- 2^(l - 1)
     phi[[l]] <- rep(0.5, n_parent_intervals)
   }
-  
+
+  # Objects for frozen prior in predict phase
+  pi_L_fixed <- NULL
+  w_fixed <- NULL
+  log_pi_fixed <- NULL
+  prior_frozen <- FALSE
+
   # Counters
-  save_idx <- 1
   n_accept <- 0
   n_total <- 0
-  
+
   # ============================================================================
   # MAIN MCMC LOOP
   # ============================================================================
-  for (iter in 1:max.iter) {
-    
+  for (iter in 1:total.iter) {
+
     # --- Step 1: Update each beta[i] via Metropolis-Hastings ---
     for (i in 1:p) {
       Xi <- X[, i]
-      
+
       # Newton-Raphson proposal parameters
       grad <- sum(residuals * Xi) / sigma_sq
       hess <- hessians[i]
       proposal_mean <- beta[i] - grad / hess
-      proposal_sd <- 1/sqrt(-hess)
-      
+      proposal_sd <- 1 / sqrt(-hess)
+
       # Sample nearby interval
       r_star <- sample_nearby_index(r_indices[i], K_adapt, num_intervals)
-      
+
       # Get interval bounds
       lower_bound <- endpoints[r_star]
       upper_bound <- endpoints[r_star + 1]
-      
+
       # Sample from truncated normal proposal
       beta_star <- rtruncnorm(1, proposal_mean, proposal_sd, lower_bound, upper_bound)
-      
+
       # Compute log likelihood ratio (incremental residual update)
       delta_beta <- beta_star - beta[i]
       delta_pred <- Xi * delta_beta
       r_dot_d <- sum(residuals * delta_pred)
       d_dot_d <- sum(delta_pred^2)
       log_lik_ratio <- (r_dot_d - 0.5 * d_dot_d) / sigma_sq
-      
-      # Compute log prior ratio using Polya tree
-      log_prior_star <- log_interval_prob(r_star, phi, L)
-      log_prior_current <- log_interval_prob(r_indices[i], phi, L)
+
+      # Compute log prior ratio
+      if (!predict || iter <= max.iter) {
+        # Training phase: full Polya tree prior
+        log_prior_star <- log_interval_prob(r_star, phi, L)
+        log_prior_current <- log_interval_prob(r_indices[i], phi, L)
+      } else {
+        # Predict phase: frozen prior from averaged pi_L
+        log_prior_star <- log_pi_fixed[r_star]
+        log_prior_current <- log_pi_fixed[r_indices[i]]
+      }
+
       log_prior_ratio <- log_prior_star - log_prior_current
-      
+
       # Metropolis-Hastings acceptance
       log_accept <- log_prior_ratio + log_lik_ratio
-      
+
       # Safeguard against NaN/Inf
       if (is.finite(log_accept) && log(runif(1)) < log_accept) {
         # Accept proposal
@@ -360,14 +381,13 @@ polya_tree_skeleton <- function(X, y, sigma, grid, K = 65, L = 6,
         # Reject proposal
         acceptance_batch <- c(acceptance_batch, 0)
       }
-      
+
       n_total <- n_total + 1
-      
+
       # Adapt K_adapt based on acceptance rate
       if (length(acceptance_batch) >= batch_size) {
         acceptance_rate <- mean(acceptance_batch)
-        
-        # # Target 23-40% acceptance rate (good for high-dim MH)
+
         if (acceptance_rate > 0.3) {
           K_adapt <- max(round(K_adapt * 1.1), K_adapt + 1)
         } else {
@@ -378,69 +398,116 @@ polya_tree_skeleton <- function(X, y, sigma, grid, K = 65, L = 6,
         batch_size <- min(as.integer(batch_size * 1.2), 500)  # Cap batch size
         acceptance_batch <- numeric(0)
       }
-    }
-    
-    # --- Step 2: Update Polya tree parameters phi | beta (Gibbs step) ---
-    N <- compute_interval_counts(beta, endpoints, L)
-    phi <- sample_phi_given_beta(N, L)
-    
-    # --- Step 3: Convert phi to grid weights for monitoring ---
-    pi_L <- phi_to_interval_probs(phi, L)
-    w <- interval_to_grid_weights(pi_L)
-    
-    # --- Save samples ---
-    if (iter %% save.iter == 0) {
-      w_samples[save_idx, ] <- w
-      beta_samples[save_idx, ] <- beta
-      save_idx <- save_idx + 1
-    }
-    
-    # --- Print progress ---
+    } # end loop over i
 
+    # --- Step 2 & 3: Update Polya tree or use frozen prior ---
+    if (!predict || iter <= max.iter) {
+      # Training phase: update phi | beta, then pi_L, then w
+      N <- compute_interval_counts(beta, endpoints, L)
+      phi <- sample_phi_given_beta(N, L)
+      pi_L <- phi_to_interval_probs(phi, L)
+      w <- interval_to_grid_weights(pi_L)
+
+      # Store pi_L sample only for training iterations
+      if (iter <= max.iter) {
+        piL_samples_train[iter, ] <- pi_L
+      }
+
+      # At the *end* of training, freeze the averaged prior if we're in predict mode
+      if (predict && !prior_frozen && iter == max.iter) {
+        # Average pi_L over burn_in+1 : max.iter
+        idx_train <- (burn_in + 1):max.iter
+        pi_L_fixed <- colMeans(piL_samples_train[idx_train, , drop = FALSE])
+
+        # Map averaged pi_L to grid weights
+        w_fixed <- interval_to_grid_weights(pi_L_fixed)
+
+        # Precompute log prior for each interval
+        log_pi_fixed <- log(pi_L_fixed)
+
+        prior_frozen <- TRUE
+      }
+
+    } else {
+      # Predict phase: do not update phi / pi_L / w
+      # Use the frozen values
+      pi_L <- pi_L_fixed
+      w <- w_fixed
+    }
+
+    # --- Save samples ---
+    w_samples_train[iter, ] <- w
+    beta_samples_train[iter, ] <- beta
+
+    # --- Print progress ---
     if (verbose && (iter %% print.iter == 0)) {
       accept_rate <- n_accept / n_total
-      cat(sprintf("Iteration %d/%d (accept: %.3f, K_adapt: %d)\n", 
-                  iter, max.iter, accept_rate, K_adapt))
-      
+      cat(sprintf("Iteration %d/%d (accept: %.3f, K_adapt: %d)\n",
+                  iter, total.iter, accept_rate, K_adapt))
+
       n_accept <- 0
       n_total <- 0
-      
-      # Compute diagnostics
 
-      mse_inst <- mean((beta - theta.true)^2)
-      cat(sprintf("  Instantaneous MSE: %.4f\n", mse_inst))
+      # Diagnostics: for training iterations, use burn-in to current (or max.iter)
+      if (!is.null(theta.true)) {
+        mse_inst <- mean((beta - theta.true)^2)
+        cat(sprintf("  Instantaneous MSE: %.4f\n", mse_inst))
+      }
 
-      burn_samples <- max(1, burn_in / save.iter + 1)
-      if (save_idx > burn_samples) {
-        w_guess <- colMeans(w_samples[burn_samples:(save_idx - 1), , drop = FALSE])
-        theta_guess <- colMeans(beta_samples[burn_samples:(save_idx - 1), , drop = FALSE])
-        
+      if (iter > burn_in) {
+        if (!predict || iter <= max.iter) {
+          # During training, diagnostics mimic original behavior
+          idx_diag <- (burn_in + 1):iter
+          w_guess_diag <- colMeans(w_samples_train[idx_diag, , drop = FALSE])
+          theta_guess_diag <- colMeans(beta_samples_train[idx_diag, , drop = FALSE])
+        } else {
+          # During predict phase, w is already frozen;
+          # theta diagnostic can use post-training samples or all so far
+          idx_diag <- (max.iter + 1):iter
+          w_guess_diag <- w_fixed
+          theta_guess_diag <- colMeans(beta_samples_train[idx_diag, , drop = FALSE])
+        }
+
         if (!is.null(w.true)) {
-          err <- sum(abs(w_guess - w.true)) / 2
+          err <- sum(abs(w_guess_diag - w.true)) / 2
           cat(sprintf("  TV distance: %.4f\n", err))
         }
-        
+
         if (!is.null(theta.true)) {
-          mse <- mean((theta_guess - theta.true)^2)
+          mse <- mean((theta_guess_diag - theta.true)^2)
           cat(sprintf("  MSE of beta: %.4f\n", mse))
         }
       }
     }
+  } # end main loop
+
+  # ============================================================================
+  # Final estimates
+  # ============================================================================
+  if (!predict) {
+    # Original behavior: average over burn-in+1 : max.iter
+    idx_final <- (burn_in + 1):max.iter
+    w_guess <- colMeans(w_samples_train[idx_final, , drop = FALSE])
+    theta_guess <- colMeans(beta_samples_train[idx_final, , drop = FALSE])
+  } else {
+    # Predict behavior:
+    #  - w_guess: frozen w formed by averaging pi_L over training phase
+    #  - theta_guess: average beta over predict iterations only
+    w_guess <- w_fixed
+    idx_predict <- (max.iter + 1):total.iter
+    theta_guess <- colMeans(beta_samples_train[idx_predict, , drop = FALSE])
   }
-  
-  # Return results
-  burn_samples <- max(1, burn_in / save.iter + 1)
-  w_guess <- colMeans(w_samples[burn_samples:(save_idx - 1), , drop = FALSE])
-  theta_guess <- colMeans(beta_samples[burn_samples:(save_idx - 1), , drop = FALSE])
 
   list(
     w = w_guess,
     theta.mean = theta_guess,
-    w_samples = w_samples,
-    theta_samples = beta_samples,
+    w_samples = w_samples_train,
+    theta_samples = beta_samples_train,
     grid = grid,
     sigma = sigma,
     K = K,
-    L = L
+    L = L,
+    # Optionally expose the frozen prior for debugging
+    pi_L_fixed = pi_L_fixed
   )
 }
