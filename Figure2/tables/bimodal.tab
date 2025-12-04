@@ -1,0 +1,8 @@
+\hline
+\multirow{6}{*}{block02corr0.9} & \multirow{6}{*}{1.0} & EBflow & 0.315 & 0.0147 & NA & 0.255\\
+&& EBflow.preconditioned & 0.312 & 0.0139 & NA & 0.253\\
+&& Langevin.eta1.0 & 0.303 & 0.0192 & NA & 0.251\\
+&& Langevin.eta0.1 & 0.288 & 0.0772 & NA & 0.255\\
+&& Gibbs & 0.248 & 0.0126 & NA & 0.251\\
+&& CAVI & 0.259 & NA & NA & 0.393\\
+&& PolyaTree & 0.249 & 0.0304 & NA & 0.260\\
