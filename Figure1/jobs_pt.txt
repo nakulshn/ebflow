@@ -1,0 +1,10 @@
+Rscript ../run_PolyaTree.R --P gaussian --D iid --dimr 0.5 --noiser 0.5 --seed 1 --respath ../Figure1/results/
+Rscript ../run_PolyaTree.R --P gaussian --D iid --dimr 0.5 --noiser 0.5 --seed 2 --respath ../Figure1/results/
+Rscript ../run_PolyaTree.R --P gaussian --D iid --dimr 0.5 --noiser 0.5 --seed 3 --respath ../Figure1/results/
+Rscript ../run_PolyaTree.R --P gaussian --D iid --dimr 0.5 --noiser 0.5 --seed 4 --respath ../Figure1/results/
+Rscript ../run_PolyaTree.R --P gaussian --D iid --dimr 0.5 --noiser 0.5 --seed 5 --respath ../Figure1/results/
+Rscript ../run_PolyaTree.R --P gaussian --D iid --dimr 0.5 --noiser 0.5 --seed 6 --respath ../Figure1/results/
+Rscript ../run_PolyaTree.R --P gaussian --D iid --dimr 0.5 --noiser 0.5 --seed 7 --respath ../Figure1/results/
+Rscript ../run_PolyaTree.R --P gaussian --D iid --dimr 0.5 --noiser 0.5 --seed 8 --respath ../Figure1/results/
+Rscript ../run_PolyaTree.R --P gaussian --D iid --dimr 0.5 --noiser 0.5 --seed 9 --respath ../Figure1/results/
+Rscript ../run_PolyaTree.R --P gaussian --D iid --dimr 0.5 --noiser 0.5 --seed 10 --respath ../Figure1/results/
