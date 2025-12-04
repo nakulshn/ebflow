@@ -59,13 +59,21 @@ for (prior in c("bimodal")) {
           colnames(stats) = colnames(tab)
           for (seed in 1:10) {
             out = readRDS(sprintf("results/%s_seed%d.rds",fnames[i],seed))
-            if (method == "PolyaTree") {
-              max.iter = 20000
-            } else {
-              max.iter = 10000
-            }
+            max.iter = 10000
             stats[[seed,"TV"]] = sum(abs(out$w-w.true)/2)
-            TV.hist = sapply(seq(1,max.iter+1,100), function(it) sum(abs(out$hist[[it]]$w-w.true)/2))
+
+
+            #if method is Polya Tree, then we don't have out.hist
+            #Instead we have out.w_samples
+            #and w_guess at iteration it is computed as the mean of w_samples from burn_in to iter
+            if (method == "PolyaTree") {
+              w_samples_train = out$w_samples
+              burn_in = 200
+              TV.hist = sapply(seq(1,max.iter+1,100), function(it) sum(abs(colMeans(w_samples_train[(burn_in + 1):it, , drop = FALSE])-w.true)/2))
+            } else {
+              TV.hist = sapply(seq(1,max.iter+1,100), function(it) sum(abs(out$hist[[it]]$w-w.true)/2))
+            }
+
             if (min(TV.hist) < 0.2) { iter = (min(which(TV.hist < 0.2))-1)*100 }
 	    else { iter = max.iter }
             stats[[seed,"Time (iters)"]] = iter
@@ -95,7 +103,7 @@ for (prior in c("bimodal")) {
         if (method != "VI") { stats.sum[["TV.sd"]] = sd(stats[["TV"]]) }
         else { stats.sum[["TV.sd"]] = NA }
         stats.sum[["Time (iters)"]] = median(stats[["Time (iters)"]])
-        if ((stats.sum[["Time (iters)"]] == 10000 && method != "PolyaTree") || (stats.sum[["Time (iters)"]] == 20000 && method == "PolyaTree") || (stats.sum[["Time (iters)"]] == 1000 && method == "CAVI")) { stats.sum[["Time (iters)"]] = NA }
+        if ((stats.sum[["Time (iters)"]] == 10000) || (stats.sum[["Time (iters)"]] == 1000 && method == "CAVI")) { stats.sum[["Time (iters)"]] = NA }
         #stats.sum[["Time (seconds)"]] = median(stats[["Time (seconds)"]])
         if (design == "identity") { stats.sum[["Log-likelihood"]] = mean(stats[["Log-likelihood"]]) }
         else { stats.sum[["Prediction MSE"]] = mean(stats[["Prediction MSE"]]) }
