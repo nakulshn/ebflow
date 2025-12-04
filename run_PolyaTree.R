@@ -36,6 +36,9 @@ theta = dat$theta.true
 y = dat$y
 
 max.iter = 10000
+if (args$predict) {
+  max.iter = 60000
+}
 
 
 ## --- Set Polya-tree depth L, default from K = 2^L + 1 ---
@@ -52,7 +55,7 @@ set.seed(args$seed)
 t1 = Sys.time()
 print(sprintf("RUN Polya Tree: %s", res_file_name))
 pt_out = polya_tree_skeleton(X, y, sigma, grid, K=K, L=L,
-		max.iter=max.iter, verbose=TRUE, w.true=w.true, theta.true=theta, print.iter=100, predict=args$predict)
+		max.iter=max.iter, verbose=TRUE, w.true=w.true, theta.true=theta, print.iter=100)
 
 print("FINISH Polya tree")
 t2=Sys.time()
