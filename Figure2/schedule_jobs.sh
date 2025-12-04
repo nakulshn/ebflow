@@ -2,4 +2,4 @@
 
 cd /home/ubuntu/ebflow/Figure2
 
-parallel -j 16 --joblog joblog.txt --results output :::: joblist_figure2_nonPT_complete.txt
+parallel -j 32 --joblog joblog.txt --results output :::: joblist_figure2_nonPT_complete.txt
