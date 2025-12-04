@@ -50,10 +50,10 @@ for (prior in c("gaussian","skew","cauchy","bimodal")) {
   prefix = sprintf("results/VI_%s_block02corr0.9_nbyp1.0_invSNR%.1f_lambda%.3f",prior,noiser,lambda)
   plot.w(fname,prefix,Theta,w.true,"green",title,seeded=FALSE)
   print("  PolyaTree")
-  title = springf("Polya Tree")
+  title = sprintf("Polya Tree")
   fname = sprintf("plots/PolyaTree_%s.pdf", prior)
-  prefix = sprintf("results/PolyaTree_%s_block02corr0.9_nbyp1.0_invSNR%.1f", prior, noiser)
-  plot.w(fname, prefix, Theta, w.true, "green", title, seeded=FALSE)
+  prefix = sprintf("results_VIPT/PolyaTree_%s_block02corr0.9_nbyp1.0_invSNR%.1f", prior, noiser)
+  plot.w(fname, prefix, Theta, w.true, "purple", title, seeded=TRUE)
 
 }
 
