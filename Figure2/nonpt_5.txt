@@ -1,0 +1,10 @@
+Rscript ../run_langevin.R --P gaussian --noiser 0.5 --lambda 0.003 --D block02corr0.9 --dimr 1.0 --eta.phi 1.0 --T 100 --seed 6 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P gaussian --noiser 0.5 --lambda 0.003 --D block02corr0.9 --dimr 1.0 --eta.phi 0.1 --T 100 --seed 6 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P skew --noiser 0.8 --lambda 0.001 --D block02corr0.9 --dimr 1.0 --eta.phi 1.0 --T 100 --seed 6 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P skew --noiser 0.8 --lambda 0.001 --D block02corr0.9 --dimr 1.0 --eta.phi 0.1 --T 100 --seed 6 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P cauchy --noiser 0.8 --lambda 0.001 --D block02corr0.9 --dimr 1.0 --eta.phi 1.0 --T 100 --seed 6 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P cauchy --noiser 0.8 --lambda 0.001 --D block02corr0.9 --dimr 1.0 --eta.phi 0.1 --T 100 --seed 6 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P bimodal --noiser 0.8 --lambda 0.001 --D block02corr0.9 --dimr 1.0 --eta.phi 1.0 --T 100 --seed 6 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P bimodal --noiser 0.8 --lambda 0.001 --D block02corr0.9 --dimr 1.0 --eta.phi 0.1 --T 100 --seed 6 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P gaussian --noiser 0.5 --lambda 0.003 --D block02corr0.9 --dimr 1.0 --eta.phi 1.0 --T 100 --seed 7 --respath ../Figure2/results/ --predict
+Rscript ../run_langevin.R --P gaussian --noiser 0.5 --lambda 0.003 --D block02corr0.9 --dimr 1.0 --eta.phi 0.1 --T 100 --seed 7 --respath ../Figure2/results/ --predict
