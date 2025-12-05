@@ -84,6 +84,9 @@ sample_phi_given_beta <- function(N, L) {
   for (l in 1:L) {
     n_parent_intervals <- 2^(l - 1)
     phi[[l]] <- numeric(n_parent_intervals)
+
+    level_param = 4
+
     
     for (i in 1:n_parent_intervals) {
       # For parent interval i at level l-1, 
@@ -92,8 +95,8 @@ sample_phi_given_beta <- function(N, L) {
       right_child <- 2 * i
       
       # Beta parameters: alpha = 1 + N_{l, left_child}, beta = 1 + N_{l, right_child}
-      alpha <- 1 + N[l, left_child]
-      beta_param <- 1 + N[l, right_child]
+      alpha <- level_param + N[l, left_child]
+      beta_param <- level_param + N[l, right_child]
       
       # Sample from Beta distribution
       phi[[l]][i] <- rbeta(1, alpha, beta_param)
@@ -102,6 +105,37 @@ sample_phi_given_beta <- function(N, L) {
   
   return(phi)
 }
+
+
+#' Posterior means E[phi | N] for Rao–Blackwellization
+#'
+#' For each node (l, i) we have the posterior:
+#'   phi_{l,i} | N ~ Beta(1 + N_{l,2*i-1}, 1 + N_{l,2*i})
+#' so
+#'   E[phi_{l,i} | N] = (1 + N_{l,2*i-1}) / (2 + N_{l,2*i-1} + N_{l,2*i})
+phi_posterior_means <- function(N, L) {
+  phi_mean <- vector("list", L)
+  
+  for (l in 1:L) {
+    n_parent_intervals <- 2^(l - 1)
+    phi_mean[[l]] <- numeric(n_parent_intervals)
+    
+    level_param = 4
+
+    for (i in 1:n_parent_intervals) {
+      left_child  <- 2 * i - 1
+      right_child <- 2 * i
+      
+      alpha      <- level_param + N[l, left_child]
+      beta_param <- level_param + N[l, right_child]
+      
+      phi_mean[[l]][i] <- alpha / (alpha + beta_param)
+    }
+  }
+  
+  phi_mean
+}
+
 
 
 #' Convert phi parameters to interval probabilities pi at level L
@@ -156,18 +190,6 @@ find_interval_index <- function(x, endpoints) {
 }
 
 
-#' Sample a nearby interval index with uniform probability
-#' @param current_idx Current interval index (1 to 2^L)
-#' @param K_adapt Adaptation parameter for proposal width
-#' @param max_idx Maximum interval index (2^L)
-#' @return New interval index
-sample_nearby_index <- function(current_idx, K_adapt, max_idx) {
-  # Sample uniformly from [current_idx - K_adapt, current_idx + K_adapt]
-  lower <- max(1, current_idx - K_adapt)
-  upper <- min(max_idx, current_idx + K_adapt)
-  sample.int(upper - lower + 1, 1) + lower - 1
-}
-
 
 #' Compute log probability of an interval under current Polya tree
 #' @param interval_idx Interval index (1 to 2^L)
@@ -203,6 +225,58 @@ log_interval_prob <- function(interval_idx, phi, L) {
   }
   
   return(log_prob)
+}
+
+
+#' Compute log posterior weights for each interval for a single beta_i
+#'
+#' @param mean  Conditional Gaussian mean m for beta_i
+#' @param sd    Conditional Gaussian sd for beta_i
+#' @param phi   List of Polya tree phi parameters
+#' @param L     Number of Polya tree levels
+#' @param endpoints Grid endpoints (length K = 2^L + 1)
+#' @return      Vector of log-weights of length (K - 1)
+log_interval_posterior_weights <- function(mean, sd, phi, L, endpoints) {
+  num_intervals <- length(endpoints) - 1L
+  log_w <- rep(-Inf, num_intervals)
+  
+  for (r in 1:num_intervals) {
+    lower <- endpoints[r]
+    upper <- endpoints[r + 1L]
+    
+    # Likelihood mass of N(mean, sd^2) inside (lower, upper]
+    a <- (lower - mean) / sd
+    b <- (upper - mean) / sd
+    mass <- pnorm(b) - pnorm(a)
+    
+    if (mass > 0) {
+      log_prior_r <- log_interval_prob(r, phi, L)
+      log_w[r] <- log_prior_r + log(mass)
+    }
+    # if mass == 0, log_w[r] stays -Inf => prob = 0
+  }
+  
+  log_w
+}
+
+
+# Fast vectorized version: prior given by log_pi, likelihood mass via CDF at endpoints
+fast_log_interval_posterior_weights <- function(mean, sd, log_pi, endpoints) {
+  # endpoints: length K = 2^L + 1
+  # log_pi:   length K-1 = 2^L  (log prior per interval)
+
+  # Standardize endpoints once
+  z    <- (endpoints - mean) / sd
+  cdf  <- pnorm(z)
+
+  # Mass in each interval (endpoints[r], endpoints[r+1]]
+  mass <- diff(cdf)            # length K-1
+
+  # Avoid log(0)
+  mass[mass <= 0] <- .Machine$double.xmin
+
+  # Combine prior and likelihood mass
+  log_pi + log(mass)
 }
 
 
@@ -260,13 +334,15 @@ polya_tree_skeleton <- function(X, y, sigma, grid, K = 65, L = 6,
     K <- expected_K
   }
   
-  # Initialize with 0s for beta
+  # Initialize with ridge solution
   XtX <- crossprod(X)
   Xty <- crossprod(X, y)
   # beta <- as.numeric(solve(XtX, Xty))
-  # set initial beta to vector of 0s
+  # beta <- as.numeric(solve(XtX + diag(1e-6, p), Xty))
+  set initial beta to vector of 0s
   beta <- rep(0, p)
-  
+
+
   # Polya tree endpoints
   if (length(grid) != K) {
     stop(sprintf("grid must have length K=%d", K))
@@ -280,15 +356,7 @@ polya_tree_skeleton <- function(X, y, sigma, grid, K = 65, L = 6,
   
   # Current state
   Xbeta <- as.numeric(X %*% beta)
-  residuals <- y - Xbeta
-  
-  # Track which interval each beta[i] belongs to
-  r_indices <- sapply(beta, find_interval_index, endpoints = endpoints)
-  
-  # Adaptive MH parameters
-  K_adapt <- 10  # Start with larger proposal width
-  batch_size <- 50  # Smaller initial batch for faster adaptation
-  acceptance_batch <- numeric(0)
+  residuals <- y - Xbeta  
   
   # Storage for MCMC samples
   w_samples_train <- matrix(0, nrow = max.iter, ncol = K)
@@ -301,104 +369,73 @@ polya_tree_skeleton <- function(X, y, sigma, grid, K = 65, L = 6,
     phi[[l]] <- rep(0.5, n_parent_intervals)
   }
   
-  # Counters
-  n_accept <- 0
-  n_total <- 0
   
   # ============================================================================
   # MAIN MCMC LOOP
   # ============================================================================
   for (iter in 1:max.iter) {
     
-    # --- Step 1: Update each beta[i] via Metropolis-Hastings ---
-    for (i in 1:p) {
-      Xi <- X[, i]
-      
-      # Newton-Raphson proposal parameters
-      grad <- sum(residuals * Xi) / sigma_sq
-      hess <- hessians[i]
-      proposal_mean <- beta[i] - grad / hess
-      proposal_sd <- 1/sqrt(-hess)
-      
-      # Sample nearby interval
-      r_star <- sample_nearby_index(r_indices[i], K_adapt, num_intervals)
-      
-      # Get interval bounds
-      lower_bound <- endpoints[r_star]
-      upper_bound <- endpoints[r_star + 1]
-      
-      # Sample from truncated normal proposal
-      beta_star <- rtruncnorm(1, proposal_mean, proposal_sd, lower_bound, upper_bound)
-      
-      # Compute log likelihood ratio (incremental residual update)
-      delta_beta <- beta_star - beta[i]
-      delta_pred <- Xi * delta_beta
-      r_dot_d <- sum(residuals * delta_pred)
-      d_dot_d <- sum(delta_pred^2)
-      log_lik_ratio <- (r_dot_d - 0.5 * d_dot_d) / sigma_sq
-      
-      # Compute log prior ratio using Polya tree
-      log_prior_star <- log_interval_prob(r_star, phi, L)
-      log_prior_current <- log_interval_prob(r_indices[i], phi, L)
-      log_prior_ratio <- log_prior_star - log_prior_current
-      
-      # Metropolis-Hastings acceptance
-      log_accept <- log_prior_ratio + log_lik_ratio
-      
-      # Safeguard against NaN/Inf
-      if (is.finite(log_accept) && log(runif(1)) < log_accept) {
-        # Accept proposal
-        beta[i] <- beta_star
-        Xbeta <- Xbeta + delta_pred
-        residuals <- residuals - delta_pred
-        r_indices[i] <- r_star
-        n_accept <- n_accept + 1
-        acceptance_batch <- c(acceptance_batch, 1)
-      } else {
-        # Reject proposal
-        acceptance_batch <- c(acceptance_batch, 0)
-      }
-      
-      n_total <- n_total + 1
-      
-      # Adapt K_adapt based on acceptance rate
-      if (length(acceptance_batch) >= batch_size) {
-        acceptance_rate <- mean(acceptance_batch)
-        
-        # # Target 23-40% acceptance rate (good for high-dim MH)
-        if (acceptance_rate > 0.3) {
-          K_adapt <- max(round(K_adapt * 1.1), K_adapt + 1)
-        } else {
-          K_adapt <- min(round(K_adapt * 0.9), K_adapt - 1)
-        }
-        K_adapt <- max(1L, min(K_adapt, num_intervals))
+        # Compute interval priors pi_r under current phi for this whole sweep
+    pi_L <- phi_to_interval_probs(phi, L)       # length = num_intervals = 2^L
+    eps  <- 1e-12
+    log_pi <- log(pi_L + eps)
 
-        batch_size <- min(as.integer(batch_size * 1.2), 500)  # Cap batch size
-        acceptance_batch <- numeric(0)
-      }
+    # --- Step 1: Update each beta[i] via exact Gibbs over intervals ---
+    for (i in 1:p) {
+        Xi <- X[, i]
+
+        grad <- sum(residuals * Xi) / sigma_sq
+        hess <- hessians[i]
+        mean_i <- beta[i] - grad / hess
+        sd_i   <- 1 / sqrt(-hess)
+
+        # Now use a faster, vectorized version that takes log_pi
+        log_w <- fast_log_interval_posterior_weights(mean_i, sd_i, log_pi, endpoints)
+
+        max_log_w <- max(log_w)
+        w_int <- exp(log_w - max_log_w)
+        w_int[!is.finite(w_int)] <- 0
+        w_int <- w_int / sum(w_int)
+
+        r_star <- sample.int(num_intervals, size = 1L, prob = w_int)
+
+        lower_bound <- endpoints[r_star]
+        upper_bound <- endpoints[r_star + 1L]
+        beta_star   <- rtruncnorm(1, mean = mean_i, sd = sd_i,
+                                  lower = lower_bound, upper = upper_bound)
+
+        delta_beta <- beta_star - beta[i]
+        if (delta_beta != 0) {
+          delta_pred <- Xi * delta_beta
+          Xbeta      <- Xbeta + delta_pred
+          residuals  <- residuals - delta_pred
+        }
+
+        beta[i]      <- beta_star
     }
-    
+
     # --- Step 2: Update Polya tree parameters phi | beta (Gibbs step) ---
     N <- compute_interval_counts(beta, endpoints, L)
     phi <- sample_phi_given_beta(N, L)
+
+    # --- Step 3 (Rao–Blackwellized): use E[w | beta] instead of w(phi) ---
+    # Posterior means of phi given N
+    phi_mean <- phi_posterior_means(N, L)
     
-    # --- Step 3: Convert phi to grid weights for monitoring ---
-    pi_L <- phi_to_interval_probs(phi, L)
-    w <- interval_to_grid_weights(pi_L)
+    # Expected interval probabilities E[pi_L | N]
+    pi_L_rb <- phi_to_interval_probs(phi_mean, L)
     
-    # --- Save samples ---
-    w_samples_train[iter, ] <- w
-    beta_samples_train[iter, ] <- beta
+    # Project to grid weights: this is w_RB = E[w | beta]
+    w_rb <- interval_to_grid_weights(pi_L_rb)
+    
+    # --- Save samples (Rao–Blackwellized w) ---
+    w_samples_train[iter, ]     <- w_rb
+    beta_samples_train[iter, ]  <- beta
     
     # --- Print progress ---
 
     if (verbose && (iter %% print.iter == 0)) {
-      accept_rate <- n_accept / n_total
-      cat(sprintf("Iteration %d/%d (accept: %.3f, K_adapt: %d)\n", 
-                  iter, max.iter, accept_rate, K_adapt))
-      
-      n_accept <- 0
-      n_total <- 0
+      cat(sprintf("Iteration %d/%d\n", iter, max.iter))
       
       # Compute diagnostics
 
@@ -406,8 +443,8 @@ polya_tree_skeleton <- function(X, y, sigma, grid, K = 65, L = 6,
       cat(sprintf("  Instantaneous MSE: %.4f\n", mse_inst))
 
       if (iter > burn_in) {
-        w_guess <- colMeans(w_samples_train[burn_in + 1:iter, , drop = FALSE])
-        theta_guess <- colMeans(beta_samples_train[burn_in + 1:iter, , drop = FALSE])
+        w_guess <- colMeans(w_samples_train[(burn_in + 1):iter, , drop = FALSE])
+        theta_guess <- colMeans(beta_samples_train[(burn_in + 1):iter, , drop = FALSE])
         
         if (!is.null(w.true)) {
           err <- sum(abs(w_guess - w.true)) / 2
@@ -423,8 +460,8 @@ polya_tree_skeleton <- function(X, y, sigma, grid, K = 65, L = 6,
   }
   
   # Return results
-  w_guess <- colMeans(w_samples_train[burn_in + 1:iter, , drop = FALSE])
-  theta_guess <- colMeans(beta_samples_train[burn_in + 1:iter, , drop = FALSE])
+  w_guess <- colMeans(w_samples_train[(burn_in + 1):iter, , drop = FALSE])
+  theta_guess <- colMeans(beta_samples_train[(burn_in + 1):iter, , drop = FALSE])
 
 
 
