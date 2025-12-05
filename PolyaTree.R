@@ -85,8 +85,7 @@ sample_phi_given_beta <- function(N, L) {
     n_parent_intervals <- 2^(l - 1)
     phi[[l]] <- numeric(n_parent_intervals)
 
-    level_param = 4
-
+    level_param = 2^(2 * (l - 1))
     
     for (i in 1:n_parent_intervals) {
       # For parent interval i at level l-1, 
@@ -120,7 +119,7 @@ phi_posterior_means <- function(N, L) {
     n_parent_intervals <- 2^(l - 1)
     phi_mean[[l]] <- numeric(n_parent_intervals)
     
-    level_param = 4
+    level_param = 2^(2 * (l - 1))
 
     for (i in 1:n_parent_intervals) {
       left_child  <- 2 * i - 1
@@ -338,9 +337,9 @@ polya_tree_skeleton <- function(X, y, sigma, grid, K = 65, L = 6,
   XtX <- crossprod(X)
   Xty <- crossprod(X, y)
   # beta <- as.numeric(solve(XtX, Xty))
-  # beta <- as.numeric(solve(XtX + diag(1e-6, p), Xty))
-  set initial beta to vector of 0s
-  beta <- rep(0, p)
+  beta <- as.numeric(solve(XtX + diag(1e-6, p), Xty))
+  # set initial beta to vector of 0s
+  # beta <- rep(0, p)
 
 
   # Polya tree endpoints
